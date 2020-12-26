@@ -1,20 +1,16 @@
-# A generative dialogue system for reminiscence therapy
+# Un sistema de diálogo generativo para la terapia de la reminiscencia
+Nuestro trabajo consiste en el desarrollo de un sistema que sea capaz deextraer descripciones de elementos presentes en material multimedia, comofotografías, que puedan representar recuerdos para personas con problemasde memoria.
+El sistema extraerá elementos de las imágenes y generará preguntas rela-cioandas con esta. Además, el sistema será capaz de responder a la personaen función de sus respuestas y continuará haciendo preguntas para contuniarla conversacion.
+De esta forma, las personas con problemas de memoria tendrán una he-rramienta útil para poder ejercitarla y recordar cosas sobre su vida y supasado.Para el desarrollo de este sistema se utilizarán distintas técnicas de Deeplearning, como por ejemplo redes convolucionales y recurrentes.
 
-In order to achieve an AI solution to encourage the communication and improve the quality of life of the people affected by cognitive impairment or the onset of Alzheimer's, we introduce Elisabot, an end-to-end system designed to guide older adults through reminiscence sessions with photos from the user.
+## Pasos para ejecutar la terapia de reminiscencia automática en Telegram con los modelos entrenados:
 
-We implement a conversational agent composed of two deep learning architectures to recognize image and text content. An Encoder-Decoder with Attention is trained to generate questions based on the photos provided by the users. Which is composed of a pretrained Convolution Neural Network to encode the picture, and a Long Short-Term Memory to decode the image features and generate the question. The second architecture is a sequence-to-sequence model that provides feedback to engage the user in the conversation.
-
-Thanks to the experiments, we realise that we obtain the best performance by training it with Persona-Dataset and fine-tune it with Cornell Movie-Dialogues dataset. Finally, we integrate Telegram as the interface for the user to interact with the conversational agent.
-
-
-## Steps to run the Authomatic Reminiscence Therapy in Telegram with trained models 
-
-1.  Install required libriaries by using src/requirements.txt  -> 'pip install -r requirements.txt'
-2.  Create a new bot, instructions can be found here: https://core.telegram.org/bots you just have to talk with BotFather to get the token which is required to authorize the bot and send requests to the Bot API.  
-    The token is a string along the lines of 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw.
-3.  Once the bot is created, place the token in telegram_bot.py  you can pass it by argument.
-4.  Download model checkpoints from https://1drv.ms/u/s!Ah93nVed1CWhgRcuqbIFDMKWFDlX?e=KXMZoL and place the folders in /src directory
-5.  Run telegram_bot.py -> python telegram_bot.py --token 110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw 
-6.  To start the Reminiscence Therapy, look for the bot you created in Telegram and write the command /start
+1. Instale las bibliotecas necesarias mediante src / requirements.txt -> 'pip install -r requirements.txt'
+2. Cree un nuevo bot, las instrucciones se pueden encontrar aquí: https://core.telegram.org/bots, solo tiene que hablar con BotFather para obtener el token que se requiere para autorizar el bot y enviar solicitudes a la API del bot.
+     El token es una cadena del tipo 110201543: AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw.
+3. Una vez creado el bot, coloque el token en telegram_bot.py y podrá pasarlo por argumento.
+4. Descargue los puntos de control del modelo de https://1drv.ms/u/s!Ah93nVed1CWhgRcuqbIFDMKWFDlX?e=KXMZoL y coloque las carpetas en el directorio / src
+5. Ejecute telegram_bot.py -> python telegram_bot.py --token 110201543: AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw
+6. Para iniciar la Terapia de Reminiscencia, busque el bot que creó en Telegram y escriba el comando /start
     
 
