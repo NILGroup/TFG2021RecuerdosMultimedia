@@ -9,8 +9,8 @@ De esta forma, las personas con problemas de memoria tendrán una he-rramienta �
 2. Cree un nuevo bot, las instrucciones se pueden encontrar aquí: https://core.telegram.org/bots, solo tiene que hablar con BotFather para obtener el token que se requiere para autorizar el bot y enviar solicitudes a la API del bot.
      El token es una cadena del tipo 110201543: AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw.
 3. Una vez creado el bot, coloque el token en telegram_bot.py y podrá pasarlo por argumento.
-4. Descargue los puntos de control del modelo de https://1drv.ms/u/s!Ah93nVed1CWhgRcuqbIFDMKWFDlX?e=KXMZoL y coloque las carpetas en el directorio / src
-5. Ejecute telegram_bot.py -> python telegram_bot.py --token 110201543: AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw
-6. Para iniciar la Terapia de Reminiscencia, busque el bot que creó en Telegram y escriba el comando /start
+4. Descargue los puntos de control del modelo de https://1drv.ms/u/s!Ah93nVed1CWhgRcuqbIFDMKWFDlX?e=KXMZoL y coloque las carpetas en el directorio / src.
+5. Ejecute telegram_bot.py -> python telegram_bot.py --token 110201543: AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw.
+6. Para iniciar la Terapia de Reminiscencia, busque el bot que creó en Telegram y escriba el comando /start.
     
 
