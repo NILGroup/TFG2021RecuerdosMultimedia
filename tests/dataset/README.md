@@ -1,0 +1,1 @@
+Este código lo que hace es asociar imágenes con sus respectivas preguntas
