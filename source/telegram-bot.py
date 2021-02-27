@@ -1,3 +1,4 @@
+import os
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
     Updater,
@@ -7,6 +8,7 @@ from telegram.ext import (
     ConversationHandler,
     CallbackContext,
 )
+
 
 # TODO: Mover todos los mensajes a un archivo para poder en un futuro tener el bot en varios idiomas.
 # TODO: Añadir persistencia de daots, que un usuario mantenga sus historias, fotos, etc.
@@ -34,11 +36,20 @@ menu_keyboard = [
 therapy_choosing_markup = ReplyKeyboardMarkup(therapy_chooseing_keyboard, resize_keyboard=True)
 therapy_markup = ReplyKeyboardMarkup(therapy_keyboard, resize_keyboard=True)
 menu_markup = ReplyKeyboardMarkup(menu_keyboard, resize_keyboard=True)
+#obtenemos la ruta base de nuestro directorio de trabajo y lo unimos con la ruta de la foto
+#BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.getcwd()
+foto = "data/bot-images/bot-image.jpeg"
+print(BASE_DIR)
+ruta_foto = os.path.join(BASE_DIR, foto)
+ruta_foto = os.path.abspath(ruta_foto)
+print(ruta_foto)
+
 
 def start(update: Update, context: CallbackContext) -> int:
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open("/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg", 'rb'))
-
+        photo=open(ruta_foto, 'rb'))
+    #"/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg"
     update.message.reply_text(
         "¡Hola y bienvenido a terapia! Mi nombre es Remi y estoy aqui para ayudarte. ¿Qué te gustaría hacer ahora?",
         reply_markup=menu_markup,
@@ -52,7 +63,7 @@ def therapy_choice(update: Update, context: CallbackContext) -> int:
     )
 
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open("/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg", 'rb'))
+        photo=open(ruta_foto, 'rb'))
 
     update.message.reply_text(
         "¿te gustaría hablar sobre esta foto o prefieres cambiarla?",
@@ -67,7 +78,7 @@ def new_therapy_choice(update: Update, context: CallbackContext) -> int:
     )
 
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open("/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg", 'rb'))
+        photo=open(ruta_foto, 'rb'))
 
     update.message.reply_text(
         "¿te gustaría hablar sobre esta foto o prefieres cambiarla?",
