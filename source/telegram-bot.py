@@ -1,3 +1,4 @@
+import os
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
     Updater,
@@ -8,12 +9,15 @@ from telegram.ext import (
     CallbackContext,
 )
 
+
 # TODO: Mover todos los mensajes a un archivo para poder en un futuro tener el bot en varios idiomas.
 # TODO: Añadir persistencia de daots, que un usuario mantenga sus historias, fotos, etc.
 # TODO: Añadir un mensaje en caso de que el usuario no haya subido ninguna imagen antes.
 # TODO: Tener un banco de expresiones en cada punto de la aplicación para que no diga siempre lo mismo.
 
 MENU, CHOOSING, THERAPY = range(3)
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+PROFILE_PICTURE = os.path.join(DIR_PATH, "data", "bot-images", "bot-image.jpeg")
 
 therapy_chooseing_keyboard = [
     ['Si', 'Siguiente'],
@@ -37,8 +41,8 @@ menu_markup = ReplyKeyboardMarkup(menu_keyboard, resize_keyboard=True)
 
 def start(update: Update, context: CallbackContext) -> int:
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open("/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg", 'rb'))
-
+        photo=open(PROFILE_PICTURE, 'rb'))
+    #"/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg"
     update.message.reply_text(
         "¡Hola y bienvenido a terapia! Mi nombre es Remi y estoy aqui para ayudarte. ¿Qué te gustaría hacer ahora?",
         reply_markup=menu_markup,
@@ -52,7 +56,7 @@ def therapy_choice(update: Update, context: CallbackContext) -> int:
     )
 
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open("/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg", 'rb'))
+        photo=open(PROFILE_PICTURE, 'rb'))
 
     update.message.reply_text(
         "¿te gustaría hablar sobre esta foto o prefieres cambiarla?",
@@ -67,7 +71,7 @@ def new_therapy_choice(update: Update, context: CallbackContext) -> int:
     )
 
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open("/Users/alejandroaizel/Documents/GitHub/TelegramBot-test/data/bot-images/bot-image.jpeg", 'rb'))
+        photo=open(PROFILE_PICTURE, 'rb'))
 
     update.message.reply_text(
         "¿te gustaría hablar sobre esta foto o prefieres cambiarla?",
