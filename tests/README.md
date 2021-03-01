@@ -1,1 +1,1 @@
-Este espacio está destinado para hacer pruebas de código antes de implementarlos en la carpeta source (código final)
+Carpeta donde probar implementaciones antes de modificar la versión source o añadir nuevos archivos.
