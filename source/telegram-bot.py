@@ -155,6 +155,19 @@ def exit(update: Update, context: CallbackContext) -> int:
 
     return ConversationHandler.END
 
+def predict(img_name):
+    img_path = os.path.join(DIR_PATH, 'data', 'user-images', img_name)
+    img = image.load_img(img_path, target_size=(299, 299))
+    img.show()
+    x = image.img_to_array(img)
+    x = np.expand_dims(x, axis=0)
+
+    x = preprocess_input(x)
+
+    preds = model.predict(x)
+
+    return decode_predictions(preds)[0][0][1]
+
 def main() -> None:
     print("Bot is running.")
 
