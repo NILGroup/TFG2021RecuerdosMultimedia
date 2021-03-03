@@ -1,6 +1,6 @@
 import os
 
-from telegram import Update
+from telegram import Update, Bot, File
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -10,13 +10,16 @@ from telegram.ext import (
     CallbackContext,
 )
 
+from PIL import Image
+
 from translate import translate
+import image_classifier
 
 TOKEN = "1634959001:AAHUMcz1JFSeQExcsRm_gb_RB3CSKA_SclI"
-MENU, CHOOSING, THERAPY = range(3)
+MENU, CHOOSING, THERAPY, CLASSIFIER = range(4)
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 PROFILE_PICTURE = os.path.join(DIR_PATH, "data", "bot-images", "bot-image.jpeg")
-FORCE_LANGUAGE = None
+FORCE_LANGUAGE = 'es'
 
 def start(update: Update, context: CallbackContext) -> int:
     user_name = update.message.from_user.first_name
@@ -101,11 +104,11 @@ def finish_therapy(update: Update, context: CallbackContext) -> int:
 def upload_images_choice(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(translate.error_message(user_language), 
+    update.message.reply_text("Por favor, sube la imágen que quieras clasificar...", 
         reply_markup=translate.menu_keyboard(user_language)
     )
 
-    return MENU
+    return CLASSIFIER
 
 def read_stories_choice(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
@@ -125,6 +128,24 @@ def download_stories_choice(update: Update, context: CallbackContext) -> int:
 
     return MENU
 
+def classify_image(update: Update, context: CallbackContext) -> int:
+    user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
+
+    update.message.reply_text("mmm....", 
+        reply_markup=translate.menu_keyboard(user_language)
+    )
+    
+    img_name = 'tmp_' + str(update.message.from_user.id) + '.jpg'
+    file = context.bot.getFile(update.message.photo[-1].file_id)
+    file.download(os.path.join(DIR_PATH, 'data', 'user-images', img_name))
+    prediction = image_classifier.predict(img_name)
+
+    update.message.reply_text("Me parece que eso es un " + prediction, 
+        reply_markup=translate.menu_keyboard(user_language)
+    )
+
+    return MENU
+
 def exit(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
@@ -134,7 +155,22 @@ def exit(update: Update, context: CallbackContext) -> int:
 
     return ConversationHandler.END
 
+def predict(img_name):
+    img_path = os.path.join(DIR_PATH, 'data', 'user-images', img_name)
+    img = image.load_img(img_path, target_size=(299, 299))
+    img.show()
+    x = image.img_to_array(img)
+    x = np.expand_dims(x, axis=0)
+
+    x = preprocess_input(x)
+
+    preds = model.predict(x)
+
+    return decode_predictions(preds)[0][0][1]
+
 def main() -> None:
+    print("Bot is running.")
+
     updater = Updater(TOKEN)
 
     dispatcher = updater.dispatcher
@@ -160,6 +196,9 @@ def main() -> None:
                 MessageHandler(Filters.regex(translate.therapy_regex(0, 1)), change_photo_therapy),
                 MessageHandler(Filters.regex(translate.therapy_regex(1, 0)), finish_therapy),
                 MessageHandler(Filters.text, answer_therapy),
+            ],
+            CLASSIFIER: [
+                MessageHandler(Filters.photo, classify_image)
             ],
         },
 
