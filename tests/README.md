@@ -1,1 +1,0 @@
-Carpeta donde probar implementaciones antes de modificar la versión source o añadir nuevos archivos.
