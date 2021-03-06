@@ -1,6 +1,6 @@
-import os
+import os, random
 
-from telegram import Update, Bot, File
+from telegram import Update, Bot, File, user
 from telegram.ext import (
     Updater,
     CommandHandler,
@@ -13,108 +13,137 @@ from telegram.ext import (
 from PIL import Image
 
 from translate import translate
-import image_classifier
+from database import daoImage, daoUser, daoQuestion
+import utils
+
 
 TOKEN = "1634959001:AAHUMcz1JFSeQExcsRm_gb_RB3CSKA_SclI"
-MENU, CHOOSING, THERAPY, CLASSIFIER = range(4)
-DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-PROFILE_PICTURE = os.path.join(DIR_PATH, "data", "bot-images", "bot-image.jpeg")
+MENU, CHOOSING, THERAPY, UPLOAD_IMAGES = range(4)
 FORCE_LANGUAGE = 'es'
 
 def start(update: Update, context: CallbackContext) -> int:
     user_name = update.message.from_user.first_name
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open(PROFILE_PICTURE, 'rb'))
+    utils.create_user_image_dir(update.message.from_user.id)
 
-    update.message.reply_text(translate.welcome_message(user_language).format(user_name),
-        reply_markup=translate.menu_keyboard(user_language))
+    daoUser.set_user(update.message.from_user.id, user_name)
+
+    context.bot.sendPhoto(chat_id=update.message.chat_id,
+        photo=open(utils.PROFILE_PICTURE, 'rb'))
+
+    update.message.reply_text(
+        translate.get_message(user_language, "WELCOME_MESSAGE").format(user_name),
+        reply_markup=translate.get_keyboard(user_language, "MENU_KEYBOARD")
+    )
 
     return MENU
 
 def therapy_choice(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(translate.therapy_choice_message(user_language))
+    update.message.reply_text(
+        translate.get_message(user_language, "THERAPY_CHOICE_MESSAGE")
+    )
 
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open(PROFILE_PICTURE, 'rb'))
+        photo=open(utils.PROFILE_PICTURE, 'rb'))
 
-    update.message.reply_text(translate.therapy_ask_to_change_message(user_language),
-        reply_markup=translate.therapy_choosing_keyboard(user_language))
+    update.message.reply_text(
+        translate.get_message(user_language, "THERAPY_ASK_TO_CHANGE_MESSAGE"),
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+    )
 
     return CHOOSING
 
 def new_therapy_choice(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(translate.therapy_change_photo_message(user_language))
+    update.message.reply_text(
+        translate.get_message(user_language, "THERAPY_CHANGE_PHOTO_MESSAGE")
+    )
 
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open(PROFILE_PICTURE, 'rb'))
+        photo=open(utils.PROFILE_PICTURE, 'rb'))
 
-    update.message.reply_text(translate.therapy_ask_to_change_message(user_language),
-        reply_markup=translate.therapy_choosing_keyboard(user_language))
+    update.message.reply_text(
+        translate.therapy_ask_to_change_message(user_language),
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+    )
 
     return CHOOSING
 
 def begin_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
     
-    update.message.reply_text(translate.therapy_begin_first_message(user_language))
+    update.message.reply_text(
+        translate.get_message(user_language, "THERAPY_BEGIN_FIRST_MESSAGE")
+    )
 
-    update.message.reply_text(translate.therapy_begin_second_message(user_language),
-        reply_markup=translate.therapy_keyboard(user_language))
+    update.message.reply_text(
+        translate.get_message(user_language, "THERAPY_BEGIN_SECOND_MESSAGE"),
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+    )
 
-    return THERAPY
+    return CHOOSING
 
 def answer_therapy(update: Update, context: CallbackContext) -> int:
     text = update.message.text
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(f'Answer: {text.lower()}',
-        reply_markup=translate.therapy_keyboard(user_language))
+    update.message.reply_text(
+        f'Answer: {text.lower()}', # todo: cambiar cuando se haga la función
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
+    )
 
     return THERAPY
 
 def change_question_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text("Change question",
-        reply_markup=translate.therapy_keyboard(user_language))
+    update.message.reply_text(
+        "Change question", # todo: cambiar cuando se haga la función
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
+    )
 
     return THERAPY
 
 def change_photo_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text("Change photo", reply_markup=translate.therapy_keyboard(user_language))
+    update.message.reply_text(
+        "Change photo",  # todo: cambiar cuando se haga la función
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
+    )
 
     return THERAPY
 
 def finish_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(translate.menu_ask_what_to_do(user_language),
-        reply_markup=translate.menu_keyboard(user_language))
+    update.message.reply_text(
+        translate.get_message(user_language, "ASK_WHAT_TO_DO"),
+        reply_markup=translate.get_keyboard(user_language, "MENU_KEYBOARD")
+    )
 
     return MENU
 
 def upload_images_choice(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text("Por favor, sube la imágen que quieras clasificar...", 
-        reply_markup=translate.menu_keyboard(user_language)
+    update.message.reply_text(
+        translate.get_message(user_language, "UPLOAD_IMAGE_MESSAGE"), 
+        reply_markup=translate.get_keyboard(user_language, "UPLOAD_IMAGES_KEYBOARD")
     )
 
-    return CLASSIFIER
+    return UPLOAD_IMAGES
 
 def read_stories_choice(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(translate.error_message(user_language), 
-        reply_markup=translate.menu_keyboard(user_language)
+    update.message.reply_text(
+        translate.get_message(user_language, "ERROR_MESSAGE"), 
+        reply_markup=translate.get_keyboard(user_language, "MENU_KEYBOARD")
     )
 
     return MENU
@@ -122,26 +151,35 @@ def read_stories_choice(update: Update, context: CallbackContext) -> int:
 def download_stories_choice(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(translate.error_message(user_language), 
-        reply_markup=translate.menu_keyboard(user_language)
+    update.message.reply_text(
+        translate.get_message(user_language, "ERROR_MESSAGE"), 
+        reply_markup=translate.get_keyboard(user_language, "MENU_KEYBOARD")
     )
 
     return MENU
 
-def classify_image(update: Update, context: CallbackContext) -> int:
+def uploading_images(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text("mmm....", 
-        reply_markup=translate.menu_keyboard(user_language)
-    )
-    
-    img_name = 'tmp_' + str(update.message.from_user.id) + '.jpg'
-    file = context.bot.getFile(update.message.photo[-1].file_id)
-    file.download(os.path.join(DIR_PATH, 'data', 'user-images', img_name))
-    prediction = image_classifier.predict(img_name)
+    new_image_id = daoImage.get_num_images(update.message.from_user.id)
+    daoImage.set_user_image(update.message.from_user.id, new_image_id)
 
-    update.message.reply_text("Me parece que eso es un " + prediction, 
-        reply_markup=translate.menu_keyboard(user_language)
+    file = context.bot.getFile(update.message.photo[-1].file_id)
+    file.download(os.path.join(utils.DIR_PATH, 'images', 'user-images', str(update.message.from_user.id), 
+        str(new_image_id) + '.jpg'))
+
+    return UPLOAD_IMAGES
+
+def finish_uploading(update: Update, context: CallbackContext) -> int:
+    user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
+
+    update.message.reply_text(
+        translate.get_message(user_language, "FINISH_UPLOAD_IMAGE_MESSAGE")
+    )
+
+    update.message.reply_text(
+        translate.get_message(user_language, "ASK_WHAT_TO_DO"), 
+        reply_markup=translate.get_keyboard(user_language, "MENU_KEYBOARD")
     )
 
     return MENU
@@ -150,23 +188,10 @@ def exit(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
     update.message.reply_text(
-        translate.goodby_message(user_language)
+        translate.get_message(user_language, "GOODBYE_MESSAGE")
     )
 
     return ConversationHandler.END
-
-def predict(img_name):
-    img_path = os.path.join(DIR_PATH, 'data', 'user-images', img_name)
-    img = image.load_img(img_path, target_size=(299, 299))
-    img.show()
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-
-    x = preprocess_input(x)
-
-    preds = model.predict(x)
-
-    return decode_predictions(preds)[0][0][1]
 
 def main() -> None:
     print("Bot is running.")
@@ -177,32 +202,36 @@ def main() -> None:
 
     conv_handler = ConversationHandler(
 
+
         entry_points=[CommandHandler('start', start)],
 
         states = {
             MENU: [
-                MessageHandler(Filters.regex(translate.menu_regex(0, 0)), therapy_choice),
-                MessageHandler(Filters.regex(translate.menu_regex(0, 1)), upload_images_choice),
-                MessageHandler(Filters.regex(translate.menu_regex(1, 0)), read_stories_choice),
-                MessageHandler(Filters.regex(translate.menu_regex(1, 1)), download_stories_choice),
+                MessageHandler(Filters.regex(translate.get_regex(0, 0, "MENU_KEYBOARD")), therapy_choice),
+                MessageHandler(Filters.regex(translate.get_regex(0, 1, "MENU_KEYBOARD")), upload_images_choice),
+                MessageHandler(Filters.regex(translate.get_regex(1, 0, "MENU_KEYBOARD")), read_stories_choice),
+                MessageHandler(Filters.regex(translate.get_regex(1, 1, "MENU_KEYBOARD")), download_stories_choice),
             ],
             CHOOSING: [
-                MessageHandler(Filters.regex(translate.therapy_choosing_regex(0, 0)), begin_therapy),
-                MessageHandler(Filters.regex(translate.therapy_choosing_regex(0, 1)), new_therapy_choice),
-                MessageHandler(Filters.regex(translate.therapy_regex(1, 0)), finish_therapy),
+                MessageHandler(Filters.regex(translate.get_regex(0, 0, "THERAPY_CHOOSING_KEYBOARD")), 
+                    begin_therapy),
+                MessageHandler(Filters.regex(translate.get_regex(0, 1, "THERAPY_CHOOSING_KEYBOARD")),
+                    new_therapy_choice),
+                MessageHandler(Filters.regex(translate.get_regex(1, 0, "THERAPY_KEYBOARD")), finish_therapy),
             ],
             THERAPY: [
-                MessageHandler(Filters.regex(translate.therapy_regex(0, 0)), change_question_therapy),
-                MessageHandler(Filters.regex(translate.therapy_regex(0, 1)), change_photo_therapy),
-                MessageHandler(Filters.regex(translate.therapy_regex(1, 0)), finish_therapy),
+                MessageHandler(Filters.regex(translate.get_regex(0, 0, "THERAPY_KEYBOARD")), change_question_therapy),
+                MessageHandler(Filters.regex(translate.get_regex(0, 1, "THERAPY_KEYBOARD")), change_photo_therapy),
+                MessageHandler(Filters.regex(translate.get_regex(1, 0, "THERAPY_KEYBOARD")), finish_therapy),
                 MessageHandler(Filters.text, answer_therapy),
             ],
-            CLASSIFIER: [
-                MessageHandler(Filters.photo, classify_image)
+            UPLOAD_IMAGES: [
+                MessageHandler(Filters.photo, uploading_images),
+                MessageHandler(Filters.regex(translate.get_regex(0, 0, "UPLOAD_IMAGES_KEYBOARD")), finish_uploading)
             ],
         },
 
-        fallbacks=[MessageHandler(Filters.regex(translate.menu_regex(2, 0)), exit)],
+        fallbacks=[MessageHandler(Filters.regex(translate.get_regex(2, 0, "MENU_KEYBOARD")), exit)],
     )
 
     dispatcher.add_handler(conv_handler)
