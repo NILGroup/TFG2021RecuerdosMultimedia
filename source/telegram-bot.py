@@ -18,7 +18,7 @@ import utils
 
 
 TOKEN = "1634959001:AAHUMcz1JFSeQExcsRm_gb_RB3CSKA_SclI"
-MENU, CHOOSING, THERAPY, UPLOAD_IMAGES = range(4)
+MENU, CHOOSING, THERAPY, UPLOAD_IMAGES, END_CONVERSATION = range(5)
 FORCE_LANGUAGE = 'es'
 
 def start(update: Update, context: CallbackContext) -> int:
@@ -67,7 +67,7 @@ def new_therapy_choice(update: Update, context: CallbackContext) -> int:
         photo=open(utils.PROFILE_PICTURE, 'rb'))
 
     update.message.reply_text(
-        translate.therapy_ask_to_change_message(user_language),
+        translate.get_message(user_language, "THERAPY_ASK_TO_CHANGE_MESSAGE"),
         reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
     )
 
@@ -82,10 +82,10 @@ def begin_therapy(update: Update, context: CallbackContext) -> int:
 
     update.message.reply_text(
         translate.get_message(user_language, "THERAPY_BEGIN_SECOND_MESSAGE"),
-        reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
     )
 
-    return CHOOSING
+    return THERAPY
 
 def answer_therapy(update: Update, context: CallbackContext) -> int:
     text = update.message.text
@@ -188,10 +188,11 @@ def exit(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
     update.message.reply_text(
-        translate.get_message(user_language, "GOODBYE_MESSAGE")
+        translate.get_message(user_language, "GOODBYE_MESSAGE"),
+        reply_markup=translate.get_keyboard(user_language, "END_CONVERSATION_KEYBOARD")
     )
 
-    return ConversationHandler.END
+    return END_CONVERSATION
 
 def main() -> None:
     print("Bot is running.")
@@ -229,6 +230,9 @@ def main() -> None:
                 MessageHandler(Filters.photo, uploading_images),
                 MessageHandler(Filters.regex(translate.get_regex(0, 0, "UPLOAD_IMAGES_KEYBOARD")), finish_uploading)
             ],
+            END_CONVERSATION: [
+                MessageHandler(Filters.regex(translate.get_regex(0, 0, "END_CONVERSATION_KEYBOARD")), start)
+            ]
         },
 
         fallbacks=[MessageHandler(Filters.regex(translate.get_regex(2, 0, "MENU_KEYBOARD")), exit)],

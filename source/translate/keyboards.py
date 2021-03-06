@@ -7,6 +7,8 @@ def get_keyboard(name):
         return get_menu_keyboards()
     elif (name == "UPLOAD_IMAGES_KEYBOARD"):
         return get_upload_images_keyboards()
+    elif (name == "END_CONVERSATION_KEYBOARD"):
+        return get_end_conversarion_keyboards()
 
 
 # therapy_choosing_keyboard
@@ -15,12 +17,12 @@ def get_therapy_choosing_keyboards():
     return [THERAPY_CHOOSING_KEYBOARD_EN, THERAPY_CHOOSING_KEYBOARD_ES]
 
 THERAPY_CHOOSING_KEYBOARD_EN = [
-    ['Yes', 'Next'],
+    ['Begin', 'Change'],
     ['End'],
 ]
 
 THERAPY_CHOOSING_KEYBOARD_ES = [
-    ['Si', 'Siguiente'],
+    ['Comenzar', 'Cambiar'],
     ['Terminar'],
 ]
 
@@ -67,3 +69,13 @@ def get_upload_images_keyboards():
 UPLOAD_IMAGES_KEYBOARD_EN = [['Finish']]
 
 UPLOAD_IMAGES_KEYBOARD_ES = [['Terminar']]
+
+
+# end_conversation_keyboard
+
+def get_end_conversarion_keyboards():
+    return [ END_CONVERSATION_KEYBOARD_EN, END_CONVERSATION_KEYBOARD_ES]
+
+END_CONVERSATION_KEYBOARD_EN = [['Start']]
+
+END_CONVERSATION_KEYBOARD_ES = [['Comenzar']]
