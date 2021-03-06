@@ -1,39 +1,56 @@
+def get_keyboard(name):
+    if (name == "THERAPY_CHOOSING_KEYBOARD"):
+        return get_therapy_choosing_keyboards()
+    elif (name == "THERAPY_KEYBOARD"):
+        return get_therapy_keyboards()
+    elif (name == "MENU_KEYBOARD"):
+        return get_menu_keyboards()
+    elif (name == "UPLOAD_IMAGES_KEYBOARD"):
+        return get_upload_images_keyboards()
+
+
 # therapy_choosing_keyboard
 
 def get_therapy_choosing_keyboards():
-    return [THERAPY_CHOOSING_KEYBOARD_ES, THERAPY_CHOOSING_KEYBOARD_EN]
-
-THERAPY_CHOOSING_KEYBOARD_ES = [
-    ['Si', 'Siguiente'],
-    ['Terminar'],
-]
+    return [THERAPY_CHOOSING_KEYBOARD_EN, THERAPY_CHOOSING_KEYBOARD_ES]
 
 THERAPY_CHOOSING_KEYBOARD_EN = [
     ['Yes', 'Next'],
     ['End'],
 ]
 
+THERAPY_CHOOSING_KEYBOARD_ES = [
+    ['Si', 'Siguiente'],
+    ['Terminar'],
+]
+
 
 # therapy_keyboard
 
 def get_therapy_keyboards():
-    return [THERAPY_KEYBOARD_ES, THERAPY_KEYBOARD_EN]
-
-THERAPY_KEYBOARD_ES = [
-    ['Cambiar pregunta', 'Cambiar fotografía'],
-    ['Terminar'],
-]
+    return [THERAPY_KEYBOARD_EN, THERAPY_KEYBOARD_ES]
 
 THERAPY_KEYBOARD_EN = [
     ['Change question', 'Change image'],
     ['End'],
 ]
 
+THERAPY_KEYBOARD_ES = [
+    ['Cambiar pregunta', 'Cambiar fotografía'],
+    ['Terminar'],
+]
+
 
 # menu_keyboard
 
 def get_menu_keyboards():
-    return [MENU_KEYBOARD_ES, MENU_KEYBOARD_EN]
+    return [MENU_KEYBOARD_EN, MENU_KEYBOARD_ES]
+
+MENU_KEYBOARD_EN = [
+    ['Begin therapy', 'Upload Images'],
+    ['Read my life stories', 'Download my life stories'],
+    ['Exit'],
+]
 
 MENU_KEYBOARD_ES = [
     ['Comenzar terapia', 'Subir imágenes'],
@@ -41,8 +58,12 @@ MENU_KEYBOARD_ES = [
     ['Salir'],
 ]
 
-MENU_KEYBOARD_EN = [
-    ['Begin therapy', 'Upload Images'],
-    ['Read my life stories', 'Download my life stories'],
-    ['Exit'],
-]
+
+# upload_images_keyboard
+
+def get_upload_images_keyboards():
+    return [ UPLOAD_IMAGES_KEYBOARD_EN, UPLOAD_IMAGES_KEYBOARD_ES]
+
+UPLOAD_IMAGES_KEYBOARD_EN = [['Finish']]
+
+UPLOAD_IMAGES_KEYBOARD_ES = [['Terminar']]
