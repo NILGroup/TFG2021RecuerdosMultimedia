@@ -18,7 +18,7 @@ new_model = Model(new_input, new_output)
 def preprocess(img_name):
     img_path = os.path.join(DIR_PATH, 'data', 'user-images', img_name)
     img = image.load_img(img_path, target_size=(299, 299))
-    img.show()
+    
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
@@ -31,6 +31,8 @@ def encode(img_name):
     enc = np.reshape(temp_enc, temp_enc.shape[1])
     
     return enc
+
+
 
 def main():
     print(encode("tmp_23954459.jpg"))
