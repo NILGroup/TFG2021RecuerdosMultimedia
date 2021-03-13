@@ -129,6 +129,9 @@ def download_datasets():
     else:
         print("You have not entered a valid value.")
 
+"""
+    todo: cambiar este método para que: 1. No cargue las imágenes, solo su ruta.
+""" 
 def load(dataset, set):
     questions_path = os.path.join(DIR_PATH, PARENT_FOLDER_NAME, DATA_FOLDER_NAME, dataset, dataset + 
         '_' + set + '_' + 'questions' + '.json')
@@ -141,19 +144,14 @@ def load(dataset, set):
     
     try:
         with open(questions_path) as json_file:
-            current_questions, questions, images = json.load(json_file), [], []
+            current_questions, questions, images = json.load(json_file), {}, {}
         
             for example in current_questions:
                 try:
                     path = os.path.join(images_path, example['id'] + '.jpg')
-                    image = Image.open(path)
 
-                    images.append({
-                        "id": example['id'],
-                        "image": image
-                    })
-
-                    questions.append(example)
+                    images[example['id']] = path
+                    questions[example['id']] = example['questions']
                 except:
                     print("Image with id: " + example['id'] + " couldn't be loaded.")
                     

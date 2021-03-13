@@ -95,17 +95,22 @@ def load_vocabulary(): #cargamos el vocabulario y devolvemos la longitud de la p
         print("Loaded " + dataset[0] + "_" + dataset[1])
     
     with open(os.path.join(DIR_PATH, "vocabulary", "full_vocabulary.json"), 'w') as out_file:
-        json.dump(vocabulary, out_file)
-
-    return max_length
+        json.dump({
+            "max_length": max_length,
+            "vocabulary": vocabulary
+        }, out_file)
 
 
 def reduce_vocabulary():
     vocabulary = os.path.join(DIR_PATH, "vocabulary", "full_vocabulary.json")
     new_vocabulary = {}
+    max_length = 0
 
     with open(vocabulary) as json_file:
-        words = json.load(json_file)
+        full_vocabulary = json.load(json_file)
+        
+        words = full_vocabulary["vocabulary"]
+        max_length = full_vocabulary["max_length"]
 
         for word in words:
             if words[word]["count"] < THRESHOLD:
@@ -114,22 +119,27 @@ def reduce_vocabulary():
             new_vocabulary[word] = len(new_vocabulary)
 
         new_vocabulary["<unk>"] = len(new_vocabulary) + 1
+        new_vocabulary["<pad>"] = len(new_vocabulary) + 1
         new_vocabulary["<start>"] = len(new_vocabulary) + 1
         new_vocabulary["<end>"] = len(new_vocabulary) + 1
-        # todo: falta <pad> que no sabemos q es
 
     with open(os.path.join(DIR_PATH, "vocabulary", "reduced_vocabulary.json"), 'w') as out_file:
-        json.dump(new_vocabulary, out_file)
+        json.dump({
+            "max_length": max_length,
+            "vocab_size": len(new_vocabulary),
+            "words": new_vocabulary
+        }, out_file)
 
 def map_vocabulary():
     with open(os.path.join(DIR_PATH, "vocabulary", "reduced_vocabulary.json")) as json_file:
         vocabulary = json.load(json_file)
+        words = vocabulary["words"]
 
         index_to_word = {}
         word_to_index = {}
         index = 1
 
-        for word in vocabulary:
+        for word in words:
             word_to_index[word] = index
             index_to_word[index] = word
             
@@ -137,7 +147,12 @@ def map_vocabulary():
 
         return index_to_word, word_to_index
 
+def get_vocabulary_info():
+    with open(os.path.join(DIR_PATH, "vocabulary", "reduced_vocabulary.json")) as json_file:
+        vocabulary = json.load(json_file)
+
+        return vocabulary["max_length"], vocabulary["vocab_size"]
 
 if __name__ == '__main__':
-    print("max question length_: " + str(load_vocabulary()))
+    # load_vocabulary()
     reduce_vocabulary()

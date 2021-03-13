@@ -29,8 +29,10 @@ def start(update: Update, context: CallbackContext) -> int:
 
     daoUser.set_user(update.message.from_user.id, user_name)
 
-    context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open(utils.PROFILE_PICTURE, 'rb'))
+    context.bot.sendPhoto(
+        chat_id=update.message.chat_id,
+        photo=open(utils.BOT_WELCOME, 'rb')
+    )
 
     update.message.reply_text(
         translate.get_message(user_language, "WELCOME_MESSAGE").format(user_name),
@@ -173,6 +175,11 @@ def uploading_images(update: Update, context: CallbackContext) -> int:
 def finish_uploading(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
+    context.bot.sendPhoto(
+        chat_id=update.message.chat_id,
+        photo=open(utils.BOT_IMAGE_SEND, 'rb')
+    )
+
     update.message.reply_text(
         translate.get_message(user_language, "FINISH_UPLOAD_IMAGE_MESSAGE")
     )
@@ -186,6 +193,11 @@ def finish_uploading(update: Update, context: CallbackContext) -> int:
 
 def exit(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
+
+    context.bot.sendPhoto(
+        chat_id=update.message.chat_id,
+        photo=open(utils.BOT_GOODBYE, 'rb')
+    )
 
     update.message.reply_text(
         translate.get_message(user_language, "GOODBYE_MESSAGE"),
