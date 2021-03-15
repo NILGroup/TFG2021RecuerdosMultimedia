@@ -151,7 +151,7 @@ def get_vocabulary_info():
     with open(os.path.join(DIR_PATH, "vocabulary", "reduced_vocabulary.json")) as json_file:
         vocabulary = json.load(json_file)
 
-        return vocabulary["max_length"], vocabulary["vocab_size"]
+        return vocabulary["max_length"], vocabulary["vocab_size"] + 1
 
 if __name__ == '__main__':
     # load_vocabulary()

@@ -12,7 +12,11 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing import sequence
 
 from vocabulary import map_vocabulary, get_vocabulary_info
-import data_generation
+
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+from dataset import load
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True' #todo: eliminar?
 
@@ -21,6 +25,10 @@ CHECKPOINT_FILEPATH = os.path.join(DIR_PATH, 'checkpoints')
 
 ENCODER_MODEL = None
 DECODER_MODEL = None
+
+VOCABULARY = [
+    ("coco", "test")
+]
 
 def encoder_model():
     model = InceptionV3(weights='imagenet')
@@ -45,6 +53,7 @@ def preprocess(img_name):
 
 def encode(img_name):
     image = preprocess(img_name)
+
     temp_enc = ENCODER_MODEL.predict(image)
     enc = np.reshape(temp_enc, temp_enc.shape[1])
     
@@ -76,8 +85,8 @@ def decoder_training():
     DECODER_MODEL.compile(loss='categorical_crossentropy', optimizer='adam')
     epochs = 30
     batch_size = 3
-    steps = data_generation.get_questions_size() // batch_size   # usamos // para división entera
-    generator = data_generation.data_generator(batch_size)
+    steps = get_questions_size() // batch_size # esto tiene que ser menor o igual  # usamos // para división entera 40
+    generator = data_generator(batch_size)
     
     model_checkpoint_callback = ModelCheckpoint(
         filepath=CHECKPOINT_FILEPATH,
@@ -87,7 +96,7 @@ def decoder_training():
         save_best_only=True
     )
 
-    DECODER_MODEL.fit(generator, epochs=epochs, steps_per_epoch=steps, verbose=2, 
+    DECODER_MODEL.fit(generator, epochs=epochs, steps_per_epoch=steps, verbose=1, 
         callbacks=[model_checkpoint_callback])
 
 
@@ -134,6 +143,52 @@ def beam_search_predict(image, beam_index = 3):
     final_caption = ' '.join(final_caption[1:])
     
     return final_caption
+
+def get_questions_size():
+    total_size = 0
+
+    for data in VOCABULARY:
+        questions, _ = load(data[0], data[1])
+        
+        for q in questions:
+            total_size += len(q)
+    
+    return total_size
+
+
+def data_generator(batch_size):
+    X1, X2, y = list(), list(), list()
+    max_length, vocab_size = get_vocabulary_info()
+    _, word_to_index = map_vocabulary()
+    it = 0
+
+    for data in VOCABULARY:
+        questions, images = load(data[0], data[1])
+
+        for key in questions:
+            current_questions = questions[key]
+            it += 1
+            image = images[key]
+            encoded_image = encode(image)
+
+            for question in current_questions:
+                sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
+
+                for i in range(1, len(sequence)):
+                    in_sequence, out_sequence = sequence[:i], sequence[i]
+
+                    in_sequence = pad_sequences([in_sequence], maxlen=max_length)[0]
+                    out_sequence = to_categorical([out_sequence], num_classes=vocab_size)[0]
+
+                    X1.append(encoded_image)
+                    X2.append(in_sequence)
+                    y.append(out_sequence)
+                
+            if it == batch_size:
+                yield([np.array(X1), np.array(X2)], np.array(y))
+                
+                X1, X2, y = list(), list(), list()
+                it = 0
 
 
 def main():

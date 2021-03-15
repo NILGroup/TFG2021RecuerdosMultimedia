@@ -8,9 +8,6 @@ from image_caption import encode
 from vocabulary import map_vocabulary, get_vocabulary_info
 
 VOCABULARY = [
-    ("bing", "test"),
-    ("bing", "train"),
-    ("bing", "validation"),
     ("coco", "test"),
     ("coco", "train"),
     ("coco", "validation"),
@@ -40,7 +37,8 @@ def data_generator(batch_size):
     for data in VOCABULARY:
         questions, images = load(data[0], data[1])
 
-        for key, current_questions in questions:
+        for key in questions:
+            current_questions = questions[key]
             it += 1
             image = images[key]
             encoded_image = encode(image)
