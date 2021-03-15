@@ -3,7 +3,9 @@ import csv
 import json
 import urllib.request
 
-from PIL import Image
+from PIL import Image, ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 DATA_FOLDER_NAME = 'data'
@@ -148,10 +150,17 @@ def load(dataset, set):
         
             for example in current_questions:
                 try:
-                    path = os.path.join(images_path, example['id'] + '.jpg')
+                    image_id = example['id']
+                    path = os.path.join(images_path, str(image_id) + '.jpg')
 
                     images[example['id']] = path
-                    questions[example['id']] = example['questions']
+                    tokenized_questions = []
+
+                    for question in example['questions']:
+                        tokenized_questions.append("<start> " + question + " <end>")
+
+                    questions[example['id']] = tokenized_questions
+
                 except:
                     print("Image with id: " + example['id'] + " couldn't be loaded.")
                     
