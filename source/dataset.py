@@ -3,7 +3,9 @@ import csv
 import json
 import urllib.request
 
-from PIL import Image
+from PIL import Image, ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 DATA_FOLDER_NAME = 'data'
@@ -129,6 +131,9 @@ def download_datasets():
     else:
         print("You have not entered a valid value.")
 
+"""
+    todo: cambiar este método para que: 1. No cargue las imágenes, solo su ruta.
+""" 
 def load(dataset, set):
     questions_path = os.path.join(DIR_PATH, PARENT_FOLDER_NAME, DATA_FOLDER_NAME, dataset, dataset + 
         '_' + set + '_' + 'questions' + '.json')
@@ -141,19 +146,21 @@ def load(dataset, set):
     
     try:
         with open(questions_path) as json_file:
-            current_questions, questions, images = json.load(json_file), [], []
+            current_questions, questions, images = json.load(json_file), {}, {}
         
             for example in current_questions:
                 try:
-                    path = os.path.join(images_path, example['id'] + '.jpg')
-                    image = Image.open(path)
+                    image_id = example['id']
+                    path = os.path.join(images_path, str(image_id) + '.jpg')
 
-                    images.append({
-                        "id": example['id'],
-                        "image": image
-                    })
+                    images[example['id']] = path
+                    tokenized_questions = []
 
-                    questions.append(example)
+                    for question in example['questions']:
+                        tokenized_questions.append("<start> " + question + " <end>")
+
+                    questions[example['id']] = tokenized_questions
+
                 except:
                     print("Image with id: " + example['id'] + " couldn't be loaded.")
                     
