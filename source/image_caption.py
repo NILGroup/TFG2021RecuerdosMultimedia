@@ -27,7 +27,9 @@ ENCODER_MODEL = None
 DECODER_MODEL = None
 
 VOCABULARY = [
-    ("coco", "test")
+    ("coco", "test"),
+    ("coco", "train"),
+    ("flickr", "test")
 ]
 
 def encoder_model():
@@ -85,7 +87,8 @@ def decoder_training():
     DECODER_MODEL.compile(loss='categorical_crossentropy', optimizer='adam')
     epochs = 30
     batch_size = 3
-    steps = get_questions_size() // batch_size # esto tiene que ser menor o igual  # usamos // para división entera 40
+    #num_questions = get_questions_size()
+    steps = get_dictionary_size() // batch_size # esto tiene que ser menor o igual  # usamos // para división entera 40
     generator = data_generator(batch_size)
     
     model_checkpoint_callback = ModelCheckpoint(
@@ -145,16 +148,26 @@ def beam_search_predict(image, beam_index = 3):
     return final_caption
 
 def get_questions_size():
+    
     total_size = 0
 
     for data in VOCABULARY:
         questions, _ = load(data[0], data[1])
         
         for q in questions:
-            total_size += len(q)
+            total_size += len(questions[q])
     
     return total_size
 
+def get_dictionary_size():
+
+    size = 0
+
+    for data in VOCABULARY:
+        questions, _ = load(data[0], data[1])
+        size += len(questions)
+
+    return size
 
 def data_generator(batch_size):
     X1, X2, y = list(), list(), list()
@@ -162,33 +175,35 @@ def data_generator(batch_size):
     _, word_to_index = map_vocabulary()
     it = 0
 
-    for data in VOCABULARY:
-        questions, images = load(data[0], data[1])
+    while 1:
 
-        for key in questions:
-            current_questions = questions[key]
-            it += 1
-            image = images[key]
-            encoded_image = encode(image)
+        for data in VOCABULARY:
+            questions, images = load(data[0], data[1])
 
-            for question in current_questions:
-                sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
+            for key in questions:
+                current_questions = questions[key]
+                it += 1
+                image = images[key]
+                encoded_image = encode(image)
 
-                for i in range(1, len(sequence)):
-                    in_sequence, out_sequence = sequence[:i], sequence[i]
+                for question in current_questions:
+                    sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
 
-                    in_sequence = pad_sequences([in_sequence], maxlen=max_length)[0]
-                    out_sequence = to_categorical([out_sequence], num_classes=vocab_size)[0]
+                    for i in range(1, len(sequence)):
+                        in_sequence, out_sequence = sequence[:i], sequence[i]
 
-                    X1.append(encoded_image)
-                    X2.append(in_sequence)
-                    y.append(out_sequence)
-                
-            if it == batch_size:
-                yield([np.array(X1), np.array(X2)], np.array(y))
-                
-                X1, X2, y = list(), list(), list()
-                it = 0
+                        in_sequence = pad_sequences([in_sequence], maxlen=max_length)[0]
+                        out_sequence = to_categorical([out_sequence], num_classes=vocab_size)[0]
+
+                        X1.append(encoded_image)
+                        X2.append(in_sequence)
+                        y.append(out_sequence)
+                    
+                if it == batch_size:
+                    yield([np.array(X1), np.array(X2)], np.array(y))
+                    
+                    X1, X2, y = list(), list(), list()
+                    it = 0
 
 
 def main():
