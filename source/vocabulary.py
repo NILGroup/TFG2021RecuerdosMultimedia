@@ -154,5 +154,5 @@ def get_vocabulary_info():
         return vocabulary["max_length"], vocabulary["vocab_size"] + 1
 
 if __name__ == '__main__':
-    # load_vocabulary()
+    load_vocabulary()
     reduce_vocabulary()

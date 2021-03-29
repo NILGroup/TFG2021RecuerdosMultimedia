@@ -21,7 +21,7 @@ from dataset import load
 os.environ['KMP_DUPLICATE_LIB_OK']='True' #todo: eliminar?
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-CHECKPOINT_FILEPATH = os.path.join(DIR_PATH, 'checkpoints')
+CHECKPOINT_FILEPATH = os.path.join(DIR_PATH, 'checkpoints', 'weighs')
 
 ENCODER_MODEL = None
 DECODER_MODEL = None
@@ -29,8 +29,15 @@ DECODER_MODEL = None
 VOCABULARY = [
     ("coco", "test"),
     ("coco", "train"),
-    ("flickr", "test")
+    ("coco", "validation"),
+    ("flickr", "test"),
+    ("flickr", "train"),
+    ("flickr", "validation"),
+    ("mscoco", "all")
 ]
+
+""",
+    """
 
 def encoder_model():
     model = InceptionV3(weights='imagenet')
@@ -80,13 +87,16 @@ def decoder_model():
 
     model = Model(inputs=[inputs1, inputs2], outputs=outputs)
 
+    if os.path.exists(CHECKPOINT_FILEPATH):
+        model.load_weights(CHECKPOINT_FILEPATH)
+
     global DECODER_MODEL
     DECODER_MODEL = model
 
 def decoder_training():
     DECODER_MODEL.compile(loss='categorical_crossentropy', optimizer='adam')
     epochs = 30
-    batch_size = 3
+    batch_size = 32
     #num_questions = get_questions_size()
     steps = get_dictionary_size() // batch_size # esto tiene que ser menor o igual  # usamos // para división entera 40
     generator = data_generator(batch_size)
@@ -94,8 +104,8 @@ def decoder_training():
     model_checkpoint_callback = ModelCheckpoint(
         filepath=CHECKPOINT_FILEPATH,
         save_weights_only=True,
-        monitor='val_accuracy', # todo: entender q es esto
-        mode='max', # todo: entender q es esto
+        monitor='loss', # todo: entender q es esto
+        mode='auto', # todo: entender q es esto
         save_best_only=True
     )
 
@@ -116,8 +126,8 @@ def beam_search_predict(image, beam_index = 3):
         temp = []
 
         for s in start_word:
-            par_caps = sequence.pad_sequences([s[0]], maxlen=max_length, padding='post')
-            preds = DECODER_MODEL.predict([image, par_caps], verbose=0)
+            par_caps = (sequence.pad_sequences([s[0]], maxlen=max_length, padding='post')).reshape((1, max_length))
+            preds = DECODER_MODEL.predict([image.reshape(1,2048), par_caps], verbose=1)
             word_preds = np.argsort(preds[0])[-beam_index:]
             # Getting the top <beam_index>(n) predictions and creating a 
             # new list so as to put them via the model again
@@ -135,17 +145,17 @@ def beam_search_predict(image, beam_index = 3):
     
     start_word = start_word[-1][0]
     intermediate_caption = [index_to_word[i] for i in start_word]
-    final_caption = []
+    final_question = []
     
     for i in intermediate_caption:
         if i != '<end>':
-            final_caption.append(i)
+            final_question.append(i)
         else:
             break
 
-    final_caption = ' '.join(final_caption[1:])
+    final_question = ' '.join(final_question[1:])
     
-    return final_caption
+    return final_question + "?"
 
 def get_questions_size():
     
@@ -187,7 +197,14 @@ def data_generator(batch_size):
                 encoded_image = encode(image)
 
                 for question in current_questions:
-                    sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
+                    sequence = []
+                    #sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
+
+                    for word in question.split(' '):
+                        if word in word_to_index:
+                            sequence.append(word_to_index[word])
+                        else:
+                            sequence.append(word_to_index["<unk>"])
 
                     for i in range(1, len(sequence)):
                         in_sequence, out_sequence = sequence[:i], sequence[i]
@@ -207,10 +224,19 @@ def data_generator(batch_size):
 
 
 def main():
+    test_image = "/Users/alejandroaizel/Documents/GitHub/TFG2021RecuerdosMultimedia/source/datasets/data/coco/test/coco_1166.jpg"
+
     encoder_model()
     decoder_model()
+    """
+    encoded_image = encode(test_image)
+    question = beam_search_predict(encoded_image)
+
+    print(question)"""
 
     decoder_training()
+
+    # decoder_training()
 
 
 if __name__ == '__main__':
