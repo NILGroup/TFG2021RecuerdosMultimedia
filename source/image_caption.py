@@ -27,14 +27,18 @@ ENCODER_MODEL = None
 DECODER_MODEL = None
 
 VOCABULARY = [
-    ("coco", "test"),
+    ("coco", "test")
+]
+
+"""
+,
     ("coco", "train"),
     ("coco", "validation"),
     ("flickr", "test"),
     ("flickr", "train"),
     ("flickr", "validation"),
     ("mscoco", "all")
-]
+    """
 
 def encoder_model():
     model = InceptionV3(weights='imagenet')
@@ -92,7 +96,7 @@ def decoder_model():
 
 def decoder_training():
     DECODER_MODEL.compile(loss='categorical_crossentropy', optimizer='adam')
-    epochs = 30
+    epochs = 1
     batch_size = 32
     #num_questions = get_questions_size()
     steps = get_dictionary_size() // batch_size # esto tiene que ser menor o igual  # usamos // para división entera 40
@@ -194,13 +198,24 @@ def data_generator(batch_size):
                 encoded_image = encode(image)
 
                 for question in current_questions:
-                    #sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
+                    sequence = []
+                    # prueba = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
 
                     for word in question.split(' '):
-                        if word in word_to_index:
-                            sequence.append(word_to_index[word])
+                        if word == "":
+                            print("vacio")
+                        if len(word) > 1 and word[-1] == "?":
+                            if word[:-1].lower() in word_to_index:
+                                sequence.append(word_to_index[word[:-1].lower()])
+                            """ else:
+                                sequence.append(word_to_index["<unk>"]) """
                         else:
-                            sequence.append("<unk>")
+                            if word.lower() in word_to_index:
+                                sequence.append(word_to_index[word.lower()])
+                            """ else:
+                                sequence.append(word_to_index["<unk>"])    """                 
+                    
+                    a = 0
 
                     for i in range(1, len(sequence)):
                         in_sequence, out_sequence = sequence[:i], sequence[i]
