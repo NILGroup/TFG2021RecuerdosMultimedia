@@ -36,6 +36,9 @@ VOCABULARY = [
     ("mscoco", "all")
 ]
 
+""",
+    """
+
 def encoder_model():
     model = InceptionV3(weights='imagenet')
 
@@ -194,13 +197,14 @@ def data_generator(batch_size):
                 encoded_image = encode(image)
 
                 for question in current_questions:
+                    sequence = []
                     #sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
 
                     for word in question.split(' '):
                         if word in word_to_index:
                             sequence.append(word_to_index[word])
                         else:
-                            sequence.append("<unk>")
+                            sequence.append(word_to_index["<unk>"])
 
                     for i in range(1, len(sequence)):
                         in_sequence, out_sequence = sequence[:i], sequence[i]
@@ -224,11 +228,13 @@ def main():
 
     encoder_model()
     decoder_model()
-    
+    """
     encoded_image = encode(test_image)
     question = beam_search_predict(encoded_image)
 
-    print(question)
+    print(question)"""
+
+    decoder_training()
 
     # decoder_training()
 
