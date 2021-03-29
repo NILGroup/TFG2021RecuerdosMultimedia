@@ -4,6 +4,7 @@ import json
 import urllib.request
 
 from PIL import Image, ImageFile
+from tensorflow.keras.preprocessing import image
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -61,6 +62,8 @@ def download(file_path, collection, type):
 
                 if os.path.exists(os.path.join(save_path, image_id + '.jpg')):
                     questions = treat_questions(row[QUESTIONS + 1 if collection == "bing" else QUESTIONS])
+
+                    questions = remove_tokens(questions)
                 
                     dataset.append({
                         "id": image_id,
@@ -71,7 +74,7 @@ def download(file_path, collection, type):
 
                     continue
 
-                available = download_image(row[IMAGE_LINK], os.path.join(save_path, image_id + '.jpg'))
+                """ available = download_image(row[IMAGE_LINK], os.path.join(save_path, image_id + '.jpg'))
 
                 if not available:
                     print("[ERROR] Image " + str(image_count) + "/" + str(row_count - 1) + " with id " 
@@ -79,7 +82,7 @@ def download(file_path, collection, type):
                     
                     image_count += 1
 
-                    continue
+                    continue """
 
                 questions = treat_questions(row[QUESTIONS + 1 if collection == "bing" else QUESTIONS])
                 
@@ -98,6 +101,19 @@ def download(file_path, collection, type):
             json.dump(dataset, out_file)
     except:
         print("An error occurred while trying to download the dataset.")
+
+def remove_tokens(questions):
+    new_questions = []
+
+    for question in questions:
+        split_question = question.split()
+
+        if split_question[0] == "<start>":
+            new_questions.append(" ".join(split_question[1:-1]))
+        else:
+            new_questions.append(question)
+
+    return new_questions
 
 def download_datasets():
     choice = input("Choose the action to take: \n   1. Download all datasets.\n   2. Download a "
@@ -132,7 +148,7 @@ def download_datasets():
         print("You have not entered a valid value.")
 
 """
-    todo: cambiar este método para que: 1. No cargue las imágenes, solo su ruta.
+    todo: cambiar este metodo para que: 1. No cargue las imagenes, solo su ruta.
 """ 
 def load(dataset, set):
     questions_path = os.path.join(DIR_PATH, PARENT_FOLDER_NAME, DATA_FOLDER_NAME, dataset, dataset + 
@@ -146,13 +162,17 @@ def load(dataset, set):
     
     try:
         with open(questions_path) as json_file:
+            counter = 0
             current_questions, questions, images = json.load(json_file), {}, {}
         
             for example in current_questions:
-                try:
-                    image_id = example['id']
-                    path = os.path.join(images_path, str(image_id) + '.jpg')
+                image_id = example['id']
+                path = os.path.join(images_path, str(image_id) + '.jpg')
 
+                if not os.path.exists(path):
+                    continue
+
+                try:
                     images[example['id']] = path
                     tokenized_questions = []
 
@@ -160,8 +180,9 @@ def load(dataset, set):
                         tokenized_questions.append("<start> " + question + " <end>")
 
                     questions[example['id']] = tokenized_questions
-
+                    counter += 1
                 except:
+                    # os.remove(path)
                     print("Image with id: " + example['id'] + " couldn't be loaded.")
                     
                     continue
@@ -216,17 +237,17 @@ def format_mscoco_database():
                     used_id[current_id] = True
 
                     current_example = {
-                        "id": current_id,
+                        "id": "mscoco_" + str(current_id),
                         "questions": [example["question"]]
                     }
 
-                    image_path = os.path.join(mscoco_images_path, 'COCO_train2014_' + 
+                    """ image_path = os.path.join(mscoco_images_path, 'COCO_train2014_' + 
                         str(current_id).zfill(12) + '.jpg')
                     image = Image.open(image_path)
 
                     path_to_save = os.path.join(DIR_PATH, PARENT_FOLDER_NAME, DATA_FOLDER_NAME, 'mscoco', 
                         "all", "mscoco_" + str(current_id) + ".jpg")
-                    image.save(path_to_save)
+                    image.save(path_to_save) """
 
                     print("[DONE] Image " + str(image_count) + "/" + "82.783" + " with id " + 
                     str(current_id) + " correctly saved.")
