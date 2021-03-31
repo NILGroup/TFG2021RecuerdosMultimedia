@@ -27,16 +27,17 @@ ENCODER_MODEL = None
 DECODER_MODEL = None
 
 VOCABULARY = [
-    ("coco", "test"),
+    ("coco", "test")
+]
+
+"""
+,
     ("coco", "train"),
     ("coco", "validation"),
     ("flickr", "test"),
     ("flickr", "train"),
     ("flickr", "validation"),
     ("mscoco", "all")
-]
-
-""",
     """
 
 def encoder_model():
@@ -87,7 +88,7 @@ def decoder_model():
 
     model = Model(inputs=[inputs1, inputs2], outputs=outputs)
 
-    if os.path.exists(CHECKPOINT_FILEPATH):
+    if os.path.exists(CHECKPOINT_FILEPATH + ".index"):
         model.load_weights(CHECKPOINT_FILEPATH)
 
     global DECODER_MODEL
@@ -95,7 +96,7 @@ def decoder_model():
 
 def decoder_training():
     DECODER_MODEL.compile(loss='categorical_crossentropy', optimizer='adam')
-    epochs = 30
+    epochs = 1
     batch_size = 32
     #num_questions = get_questions_size()
     steps = get_dictionary_size() // batch_size # esto tiene que ser menor o igual  # usamos // para división entera 40
@@ -198,13 +199,24 @@ def data_generator(batch_size):
 
                 for question in current_questions:
                     sequence = []
-                    #sequence = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
+                    has_unknown = False
 
                     for word in question.split(' '):
-                        if word in word_to_index:
-                            sequence.append(word_to_index[word])
+                        if word == "":
+                            print("vacio")
+                        if len(word) > 1 and word[-1] == "?":
+                            if word[:-1].lower() in word_to_index:
+                                sequence.append(word_to_index[word[:-1].lower()])
+                            else:
+                                has_unknown = True
                         else:
-                            sequence.append(word_to_index["<unk>"])
+                            if word.lower() in word_to_index:
+                                sequence.append(word_to_index[word.lower()])        
+                            else:
+                                has_unknown = True    
+                    
+                    if has_unknown:
+                        continue
 
                     for i in range(1, len(sequence)):
                         in_sequence, out_sequence = sequence[:i], sequence[i]
@@ -224,17 +236,17 @@ def data_generator(batch_size):
 
 
 def main():
-    test_image = "/Users/alejandroaizel/Documents/GitHub/TFG2021RecuerdosMultimedia/source/datasets/data/coco/test/coco_1166.jpg"
+    test_image = "/Users/alejandroaizel/Documents/GitHub/TFG2021RecuerdosMultimedia/source/datasets/data/bing/test/bing_0b495933-0543-4788-a01f-5cc33defa130.jpg"
 
     encoder_model()
     decoder_model()
-    """
+    
     encoded_image = encode(test_image)
     question = beam_search_predict(encoded_image)
 
-    print(question)"""
+    print(question)
 
-    decoder_training()
+    # decoder_training()
 
 
 if __name__ == '__main__':
