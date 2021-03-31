@@ -88,7 +88,7 @@ def decoder_model():
 
     model = Model(inputs=[inputs1, inputs2], outputs=outputs)
 
-    if os.path.exists(CHECKPOINT_FILEPATH):
+    if os.path.exists(CHECKPOINT_FILEPATH + ".index"):
         model.load_weights(CHECKPOINT_FILEPATH)
 
     global DECODER_MODEL
@@ -199,7 +199,7 @@ def data_generator(batch_size):
 
                 for question in current_questions:
                     sequence = []
-                    # prueba = [word_to_index[word] for word in question.split(' ') if word in word_to_index] # añadir <unk>
+                    has_unknown = False
 
                     for word in question.split(' '):
                         if word == "":
@@ -207,15 +207,16 @@ def data_generator(batch_size):
                         if len(word) > 1 and word[-1] == "?":
                             if word[:-1].lower() in word_to_index:
                                 sequence.append(word_to_index[word[:-1].lower()])
-                            """ else:
-                                sequence.append(word_to_index["<unk>"]) """
+                            else:
+                                has_unknown = True
                         else:
                             if word.lower() in word_to_index:
-                                sequence.append(word_to_index[word.lower()])
-                            """ else:
-                                sequence.append(word_to_index["<unk>"])    """                 
+                                sequence.append(word_to_index[word.lower()])        
+                            else:
+                                has_unknown = True    
                     
-                    a = 0
+                    if has_unknown:
+                        continue
 
                     for i in range(1, len(sequence)):
                         in_sequence, out_sequence = sequence[:i], sequence[i]
@@ -235,7 +236,7 @@ def data_generator(batch_size):
 
 
 def main():
-    test_image = "/Users/alejandroaizel/Documents/GitHub/TFG2021RecuerdosMultimedia/source/datasets/data/coco/test/coco_1166.jpg"
+    test_image = "/Users/alejandroaizel/Documents/GitHub/TFG2021RecuerdosMultimedia/source/datasets/data/bing/test/bing_0b495933-0543-4788-a01f-5cc33defa130.jpg"
 
     encoder_model()
     decoder_model()
