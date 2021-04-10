@@ -45,3 +45,33 @@ def get_num_images(user_id):
     conn.commit()
     
     return num_images
+
+def set_selected_image(user_id, image_id):
+    conn = sqlite3.connect(DATABASE_DIR)
+    cursor = conn.cursor()
+
+    selected = cursor.execute("SELECT COUNT(*) FROM Current_Selection WHERE user_id = ?", (user_id, ))
+    
+    if selected.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO Current_Selection VALUES (?, ?)", (user_id, image_id))
+    else:
+        cursor.execute("UPDATE Current_Selection SET image_id = ? WHERE user_id = ?", (image_id, user_id))
+
+    cursor.close()
+    conn.commit()
+
+def get_selected_image(user_id):
+    conn = sqlite3.connect(DATABASE_DIR)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT image_id FROM Current_Selection WHERE user_id = ?", (user_id, ))
+
+    image = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.commit()
+    
+    return image
+
+
+
