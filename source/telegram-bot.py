@@ -13,9 +13,10 @@ from telegram.ext import (
 from PIL import Image
 
 from translate import translate
-from database import daoImage, daoUser, daoQuestion
+from database import daoImage, daoUser, daoCurrentQuestions
 import utils
-
+from image_question import encode, beam_search_predict, encoder_model, decoder_model
+from google_trans_new import google_translator
 
 TOKEN = "1634959001:AAHUMcz1JFSeQExcsRm_gb_RB3CSKA_SclI"
 MENU, CHOOSING, THERAPY, UPLOAD_IMAGES, END_CONVERSATION = range(5)
@@ -48,8 +49,13 @@ def therapy_choice(update: Update, context: CallbackContext) -> int:
         translate.get_message(user_language, "THERAPY_CHOICE_MESSAGE")
     )
 
+    user_images = daoImage.get_user_images(update.message.from_user.id)
+    random_image = user_images[random.randint(0, len(user_images) - 1)]
+
+    daoImage.set_selected_image(update.message.from_user.id, random_image)
+
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open(utils.PROFILE_PICTURE, 'rb'))
+        photo=open(os.path.join(utils.DIR_PATH, "images", "user-images", str(update.message.from_user.id), str(random_image) + ".jpg"), 'rb'))
 
     update.message.reply_text(
         translate.get_message(user_language, "THERAPY_ASK_TO_CHANGE_MESSAGE"),
@@ -65,8 +71,13 @@ def new_therapy_choice(update: Update, context: CallbackContext) -> int:
         translate.get_message(user_language, "THERAPY_CHANGE_PHOTO_MESSAGE")
     )
 
+    user_images = daoImage.get_user_images(update.message.from_user.id)
+    random_image = user_images[random.randint(0, len(user_images) - 1)]
+
+    daoImage.set_selected_image(update.message.from_user.id, random_image)
+
     context.bot.sendPhoto(chat_id=update.message.chat_id,
-        photo=open(utils.PROFILE_PICTURE, 'rb'))
+        photo=open(os.path.join(utils.DIR_PATH, "images", "user-images", str(update.message.from_user.id), str(random_image) + ".jpg"), 'rb'))
 
     update.message.reply_text(
         translate.get_message(user_language, "THERAPY_ASK_TO_CHANGE_MESSAGE"),
@@ -82,8 +93,18 @@ def begin_therapy(update: Update, context: CallbackContext) -> int:
         translate.get_message(user_language, "THERAPY_BEGIN_FIRST_MESSAGE")
     )
 
+    image = daoImage.get_selected_image(update.message.from_user.id)
+
+    encoded_image = encode(os.path.join(utils.DIR_PATH, "images", "user-images", str(update.message.from_user.id), str(image) + ".jpg"))
+    
+    questions = beam_search_predict(encoded_image)
+
+    daoCurrentQuestions.set_user_curren_questions(update.message.from_user.id, questions[1:])
+
+    translator = google_translator()  
+
     update.message.reply_text(
-        translate.get_message(user_language, "THERAPY_BEGIN_SECOND_MESSAGE"),
+        translator.translate(questions[0], lang_tgt=user_language),
         reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
     )
 
@@ -94,34 +115,103 @@ def answer_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
     update.message.reply_text(
-        f'Answer: {text.lower()}', # todo: cambiar cuando se haga la función
+        translate.get_message(user_language, "BOT_ANSWER"),
         reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
     )
 
-    return THERAPY
+    if daoCurrentQuestions.user_has_current_questions(update.message.from_user.id):
+        questions = daoCurrentQuestions.get_user_current_questions(update.message.from_user.id)
+        daoCurrentQuestions.delete_user_current_question(update.message.from_user.id, questions[0])
+
+        translator = google_translator()
+
+        update.message.reply_text(
+            translator.translate(questions[0], lang_tgt=user_language),
+            reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
+        )
+
+        return THERAPY
+    else:
+        update.message.reply_text(
+            translate.get_message(user_language, "THERAPY_NO_MORE_QUESTIONS_MESSAGE"),
+            reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+        )
+
+        user_images = daoImage.get_user_images(update.message.from_user.id)
+        random_image = user_images[random.randint(0, len(user_images) - 1)]
+
+        daoImage.set_selected_image(update.message.from_user.id, random_image)
+
+        context.bot.sendPhoto(chat_id=update.message.chat_id,
+            photo=open(os.path.join(utils.DIR_PATH, "images", "user-images", str(update.message.from_user.id), str(random_image) + ".jpg"), 'rb'))
+
+        update.message.reply_text(
+            translate.get_message(user_language, "THERAPY_ASK_TO_CHANGE_MESSAGE"),
+            reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+        )
+
+        return CHOOSING
 
 def change_question_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
-    update.message.reply_text(
-        "Change question", # todo: cambiar cuando se haga la función
-        reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
-    )
+    if daoCurrentQuestions.user_has_current_questions(update.message.from_user.id):
+        questions = daoCurrentQuestions.get_user_current_questions(update.message.from_user.id)
+        daoCurrentQuestions.delete_user_current_question(update.message.from_user.id, questions[0])
 
-    return THERAPY
+        translator = google_translator()
+
+        update.message.reply_text(
+            translator.translate(questions[0], lang_tgt=user_language),
+            reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
+        )
+
+        return THERAPY
+    else:
+        update.message.reply_text(
+            translate.get_message(user_language, "THERAPY_NO_MORE_QUESTIONS_MESSAGE"),
+            reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+        )
+
+        user_images = daoImage.get_user_images(update.message.from_user.id)
+        random_image = user_images[random.randint(0, len(user_images) - 1)]
+
+        daoImage.set_selected_image(update.message.from_user.id, random_image)
+
+        context.bot.sendPhoto(chat_id=update.message.chat_id,
+            photo=open(os.path.join(utils.DIR_PATH, "images", "user-images", str(update.message.from_user.id), str(random_image) + ".jpg"), 'rb'))
+
+        update.message.reply_text(
+            translate.get_message(user_language, "THERAPY_ASK_TO_CHANGE_MESSAGE"),
+            reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
+        )
+
+        return CHOOSING
 
 def change_photo_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
 
+    user_images = daoImage.get_user_images(update.message.from_user.id)
+    random_image = user_images[random.randint(0, len(user_images) - 1)]
+
+    daoImage.set_selected_image(update.message.from_user.id, random_image)
+
+    daoCurrentQuestions.delete_user_current_questions(update.message.from_user.id)
+
+    context.bot.sendPhoto(chat_id=update.message.chat_id,
+        photo=open(os.path.join(utils.DIR_PATH, "images", "user-images", str(update.message.from_user.id), str(random_image) + ".jpg"), 'rb'))
+
     update.message.reply_text(
-        "Change photo",  # todo: cambiar cuando se haga la función
-        reply_markup=translate.get_keyboard(user_language, "THERAPY_KEYBOARD")
+        translate.get_message(user_language, "THERAPY_ASK_TO_CHANGE_MESSAGE"),
+        reply_markup=translate.get_keyboard(user_language, "THERAPY_CHOOSING_KEYBOARD")
     )
 
-    return THERAPY
+    return CHOOSING
 
 def finish_therapy(update: Update, context: CallbackContext) -> int:
     user_language = translate.get_language(update.message.from_user.language_code, FORCE_LANGUAGE)
+
+    daoCurrentQuestions.delete_user_current_questions(update.message.from_user.id)
 
     update.message.reply_text(
         translate.get_message(user_language, "ASK_WHAT_TO_DO"),
@@ -208,6 +298,11 @@ def exit(update: Update, context: CallbackContext) -> int:
 
 def main() -> None:
     print("Bot is running.")
+
+    encoder_model()
+    decoder_model()
+
+    print("Models loaded.")
 
     updater = Updater(TOKEN)
 

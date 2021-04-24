@@ -1,3 +1,4 @@
+import random
 # WELCOME_MESSAGE
 
 def get_welcome_message():
@@ -44,6 +45,18 @@ def get_therapy_change_photo_message():
 
 THERAPY_CHANGE_PHOTO_MESSAGE_EN = "Lets try with this one..."
 THERAPY_CHANGE_PHOTO_MESSAGE_ES = "Vamos a probar con esta otra..."
+
+
+# THERAPY_NO_MORE_QUESTIONS_MESSAGE
+
+def get_therapy_no_more_questions_message():
+    return [
+        THERAPY_NO_MORE_QUESTIONS_MESSAGE_EN, 
+        THERAPY_NO_MORE_QUESTIONS_MESSAGE_ES
+    ]
+
+THERAPY_NO_MORE_QUESTIONS_MESSAGE_EN = "I think it's enough, let's try with another image!"
+THERAPY_NO_MORE_QUESTIONS_MESSAGE_ES = "Creo que ya es suficiente, ¡vamos a probar con otra foto!"
 
 
 # THERAPY_BEGIN_FIRST_MESSAGE
@@ -129,6 +142,36 @@ def get_finish_upload_image_message():
 FINISH_UPLOAD_IMAGE_MESSAGE_EN = "Thanks for uploading your images! 😄"
 FINISH_UPLOAD_IMAGE_MESSAGE_ES = "¡Gracias por subir tus imágenes! 😄"
 
+# FINISH_UPLOAD_IMAGE_MESSAGE
+
+def get_bot_answer():
+    random_number = random.randint(0, len(BOT_ANSWER_EN) - 1)
+    
+    return [
+        BOT_ANSWER_EN[random_number], 
+        BOT_ANSWER_ES[random_number]
+    ]
+
+BOT_ANSWER_EN = [
+    "Okeey",
+    "Amazing!",
+    "Interesting...",
+    "Perfect!",
+    "That's cool!",
+    "Let's keep going",
+    "Here is another question",
+    "Really?",
+]
+BOT_ANSWER_ES = [
+    "Okeey",
+    "¡Genial!",
+    "Interesante...",
+    "¡Estupendo!",
+    "Que guay",
+    "Sigamos avanzando",
+    "Ahi va otra",
+    "¿Ah si?",
+]
 
 
 def get_message(name):
@@ -140,6 +183,8 @@ def get_message(name):
         return get_therapy_ask_to_change_message()
     elif (name == "THERAPY_CHANGE_PHOTO_MESSAGE"):
         return get_therapy_change_photo_message()
+    elif (name == "THERAPY_NO_MORE_QUESTIONS_MESSAGE"):
+        return get_therapy_no_more_questions_message()
     elif (name == "THERAPY_BEGIN_FIRST_MESSAGE"):
         return get_therapy_begin_first_message()
     elif (name == "THERAPY_BEGIN_SECOND_MESSAGE"):
@@ -154,4 +199,7 @@ def get_message(name):
         return get_upload_image_message()
     elif (name == "FINISH_UPLOAD_IMAGE_MESSAGE"):
         return get_finish_upload_image_message()
+    elif (name == "BOT_ANSWER"):
+        return get_bot_answer()
+    
         
