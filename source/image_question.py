@@ -17,8 +17,9 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from dataset import load
+import utils
 
-os.environ['KMP_DUPLICATE_LIB_OK']='True' #todo: eliminar?
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 CHECKPOINT_FILEPATH = os.path.join(DIR_PATH, 'checkpoints', 'weighs')
@@ -27,18 +28,19 @@ ENCODER_MODEL = None
 DECODER_MODEL = None
 
 VOCABULARY = [
-    ("coco", "test")
-]
-
-"""
-,
+    ("bing", "test"),
+    ("bing", "train"),
+    ("bing", "validation"),
+    ("coco", "test"),
     ("coco", "train"),
     ("coco", "validation"),
     ("flickr", "test"),
     ("flickr", "train"),
     ("flickr", "validation"),
-    ("mscoco", "all")
-    """
+    ("mscoco", "test"),
+    ("mscoco", "train"),
+    ("mscoco", "validation"),
+]
 
 def encoder_model():
     model = InceptionV3(weights='imagenet')
@@ -87,6 +89,14 @@ def decoder_model():
     outputs = Dense(vocab_size, activation='softmax')(decoder2)
 
     model = Model(inputs=[inputs1, inputs2], outputs=outputs)
+    model.summary()
+
+    """ embedding_matrix = create_embedding_matrix()
+
+    model.layers[2].set_weights([embedding_matrix])
+    model.layers[2].trainable = False """
+
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
 
     if os.path.exists(CHECKPOINT_FILEPATH + ".index"):
         model.load_weights(CHECKPOINT_FILEPATH)
@@ -94,19 +104,41 @@ def decoder_model():
     global DECODER_MODEL
     DECODER_MODEL = model
 
+def create_embedding_matrix():
+    embeddings_index = {}
+    _, vocab_size = get_vocabulary_info()
+    _, word_to_index = map_vocabulary()
+
+    f = open(os.path.join(utils.DIR_PATH, "glove.6B", 'glove.6B.300d.txt'), encoding="utf-8")
+
+    for line in f:
+        values = line.split()
+        word = values[0]
+        coefs = np.asarray(values[1:], dtype='float32')
+        embeddings_index[word] = coefs
+
+    embedding_dim = 600
+    embedding_matrix = np.zeros((vocab_size, embedding_dim))
+
+    for word, i in word_to_index.items():
+        embedding_vector = embeddings_index.get(word)
+
+        if embedding_vector is not None:
+            embedding_matrix[i] = embedding_vector
+
+    return embedding_matrix
+
 def decoder_training():
-    DECODER_MODEL.compile(loss='categorical_crossentropy', optimizer='adam')
     epochs = 1
     batch_size = 32
-    #num_questions = get_questions_size()
-    steps = get_dictionary_size() // batch_size # esto tiene que ser menor o igual  # usamos // para división entera 40
+    steps = get_dictionary_size() // batch_size
     generator = data_generator(batch_size)
     
     model_checkpoint_callback = ModelCheckpoint(
         filepath=CHECKPOINT_FILEPATH,
         save_weights_only=True,
-        monitor='loss', # todo: entender q es esto
-        mode='auto', # todo: entender q es esto
+        monitor='loss',
+        mode='auto',
         save_best_only=True
     )
 
@@ -114,7 +146,7 @@ def decoder_training():
         callbacks=[model_checkpoint_callback])
 
 
-def beam_search_predict(image, beam_index = 5):
+def beam_search_predict(image, beam_index = 10):
     index_to_word, word_to_index = map_vocabulary()
     max_length, vocab_size = get_vocabulary_info()
     
@@ -172,23 +204,6 @@ def beam_search_predict(image, beam_index = 5):
         questions.append(final_sentence + "?")
     
     return questions
-    
-    """ start_word = start_word[-1][0]
-    intermediate_caption = [index_to_word[i] for i in start_word]
-    final_question = []
-    
-    for i in intermediate_caption:
-        if i != '<end>':
-            final_question.append(i)
-        else:
-            break
-
-    final_question = ' '.join(final_question[1:])
-    
-    return final_question + "?" """
-    
-
-
 
 def get_questions_size():
     
@@ -266,20 +281,10 @@ def data_generator(batch_size):
                     X1, X2, y = list(), list(), list()
                     it = 0
 
-
 def main():
-    test_image = "/Users/alejandroaizel/Documents/GitHub/TFG2021RecuerdosMultimedia/source/datasets/data/bing/test/bing_0b495933-0543-4788-a01f-5cc33defa130.jpg"
-
     encoder_model()
     decoder_model()
-    
-    encoded_image = encode(test_image)
-    question = beam_search_predict(encoded_image)
-
-    print(question)
-
-    # decoder_training()
-
+    decoder_training()
 
 if __name__ == '__main__':
     main()

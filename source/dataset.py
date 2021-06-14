@@ -74,7 +74,7 @@ def download(file_path, collection, type):
 
                     continue
 
-                """ available = download_image(row[IMAGE_LINK], os.path.join(save_path, image_id + '.jpg'))
+                available = download_image(row[IMAGE_LINK], os.path.join(save_path, image_id + '.jpg'))
 
                 if not available:
                     print("[ERROR] Image " + str(image_count) + "/" + str(row_count - 1) + " with id " 
@@ -82,7 +82,7 @@ def download(file_path, collection, type):
                     
                     image_count += 1
 
-                    continue """
+                    continue
 
                 questions = treat_questions(row[QUESTIONS + 1 if collection == "bing" else QUESTIONS])
                 
@@ -165,25 +165,40 @@ def load(dataset, set):
             counter = 0
             current_questions, questions, images = json.load(json_file), {}, {}
         
+            #if(dataset == 'bing'):
+                
+
             for example in current_questions:
-                image_id = example['id']
+                if(dataset == 'bing'):
+                    image_id = example
+                else:
+                    image_id = example['id']
+                    
                 path = os.path.join(images_path, str(image_id) + '.jpg')
 
                 if not os.path.exists(path):
                     continue
 
                 try:
-                    images[example['id']] = path
+                    images[image_id] = path
                     tokenized_questions = []
 
-                    for question in example['questions']:
-                        tokenized_questions.append("<start> " + question + " <end>")
+                    if(dataset == 'bing'):
+                        q = current_questions[image_id]
+                    else:
+                        q = example['questions']
 
-                    questions[example['id']] = tokenized_questions
+                    for question in q:
+                        if(dataset == 'bing'):
+                            tokenized_questions.append(question)
+                        else:
+                            tokenized_questions.append("<start> " + question + " <end>")
+
+                    questions[image_id] = tokenized_questions
                     counter += 1
                 except:
                     # os.remove(path)
-                    print("Image with id: " + example['id'] + " couldn't be loaded.")
+                    print("Image with id: " + image_id + " couldn't be loaded.")
                     
                     continue
             
@@ -241,13 +256,13 @@ def format_mscoco_database():
                         "questions": [example["question"]]
                     }
 
-                    """ image_path = os.path.join(mscoco_images_path, 'COCO_train2014_' + 
+                    image_path = os.path.join(mscoco_images_path, 'COCO_train2014_' + 
                         str(current_id).zfill(12) + '.jpg')
                     image = Image.open(image_path)
 
                     path_to_save = os.path.join(DIR_PATH, PARENT_FOLDER_NAME, DATA_FOLDER_NAME, 'mscoco', 
                         "all", "mscoco_" + str(current_id) + ".jpg")
-                    image.save(path_to_save) """
+                    image.save(path_to_save)
 
                     print("[DONE] Image " + str(image_count) + "/" + "82.783" + " with id " + 
                     str(current_id) + " correctly saved.")

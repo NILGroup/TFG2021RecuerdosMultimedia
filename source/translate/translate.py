@@ -2,13 +2,14 @@ from telegram import ReplyKeyboardMarkup
 
 from . import keyboards, messages
 
-ENGLISH, SPANISH = range(2)
+ENGLISH, SPANISH, FRENCH = range(3)
 
 def get_language(user_language, force_language):
     if force_language != None:
         return force_language
     
     return user_language
+
 
 # KEYBOARDS
 
@@ -17,6 +18,8 @@ def get_keyboard(language, keyboard_name):
         return ReplyKeyboardMarkup(keyboards.get_keyboard(keyboard_name)[ENGLISH], resize_keyboard=True)
     elif language == "es":
         return ReplyKeyboardMarkup(keyboards.get_keyboard(keyboard_name)[SPANISH], resize_keyboard=True)
+    elif language == "fr":
+        return ReplyKeyboardMarkup(keyboards.get_keyboard(keyboard_name)[FRENCH], resize_keyboard=True)
     else:
         return ReplyKeyboardMarkup(keyboards.get_keyboard(keyboard_name)[ENGLISH], resize_keyboard=True)
 
@@ -34,6 +37,7 @@ def get_regex(row, column, keyboard_name):
     
     return regex
 
+
 # MESSAGES
 
 def get_message(language, message_name):
@@ -41,5 +45,7 @@ def get_message(language, message_name):
         return messages.get_message(message_name)[ENGLISH]
     elif language == "es":
         return messages.get_message(message_name)[SPANISH]
+    elif language == "fr":
+        return messages.get_message(message_name)[FRENCH]
     else:
         return messages.get_message(message_name)[ENGLISH]

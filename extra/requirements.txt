@@ -1,5 +1,10 @@
-python-telegram-bot==13.2
-pillow==8.0.0
+La versión utilizada ha sido Python 3.7.7 y se recomienda instalar los siguientes módulos
+Mediante el comando que se pone a continuación en un environment de Anaconda en dicha
+Versión de python.
+
+python-telegram-bot 8.3.1 → conda install -c conda-forge python-telegram-bot
+pillow 8.1.0 → conda install -c anaconda pillow
 tensorflow  2.4.1 → pip install tensorflow 
 google-trans-new 1.1.9 → pip install google-trans-new 
-inflect==5.3
+inflect 5.3 → pip install inflect
+fpdf → pip install fpdf

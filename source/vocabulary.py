@@ -1,18 +1,21 @@
 import os
 import json
+from typing import Collection
 import inflect
 
 VOCABULARY = [
-    ("bing", "test"),
     ("bing", "train"),
+    ("bing", "test"),
     ("bing", "validation"),
-    ("coco", "test"),
-    ("coco", "train"),
-    ("coco", "validation"),
-    ("flickr", "test"),
     ("flickr", "train"),
+    ("flickr", "test"),
     ("flickr", "validation"),
-    ("mscoco", "all"),
+    ("coco", "train"),
+    ("coco", "test"),
+    ("coco", "validation"),
+    ("mscoco", "validation"),
+    ("mscoco", "validation"),
+    ("mscoco", "validation")
 ]
 
 THRESHOLD = 10
@@ -27,10 +30,14 @@ def load_vocabulary(): #cargamos el vocabulario y devolvemos la longitud de la p
         path = os.path.join(DIR_PATH, "data", dataset[0], dataset[0] + "_" + dataset[1] + "_questions.json")
 
         with open(path) as json_file:
-            questions = json.load(json_file)   
+            data = json.load(json_file)
 
-            for example in questions:
-                for question in example["questions"]:
+            for example in data:
+                if dataset[0] == 'bing':
+                    questions = data[example]
+                else:
+                    questions = example['questions']
+                for question in questions:
                     if question[len(question) - 1] == "?":
                         question = question[:-1]
                     else:
@@ -99,7 +106,6 @@ def load_vocabulary(): #cargamos el vocabulario y devolvemos la longitud de la p
             "max_length": max_length,
             "vocabulary": vocabulary
         }, out_file)
-
 
 def reduce_vocabulary():
     vocabulary = os.path.join(DIR_PATH, "vocabulary", "full_vocabulary.json")

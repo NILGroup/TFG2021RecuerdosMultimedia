@@ -8,13 +8,18 @@ from image_caption import encode
 from vocabulary import map_vocabulary, get_vocabulary_info
 
 VOCABULARY = [
+    ("bing", "test"),
+    ("bing", "train"),
+    ("bing", "validation"),
     ("coco", "test"),
     ("coco", "train"),
     ("coco", "validation"),
     ("flickr", "test"),
     ("flickr", "train"),
     ("flickr", "validation"),
-    ("mscoco", "all"),
+    ("mscoco", "test"),
+    ("mscoco", "train"),
+    ("mscoco", "validation"),
 ]
 
 def get_questions_size():

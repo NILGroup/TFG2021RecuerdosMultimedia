@@ -14,7 +14,7 @@ def set_user_image(user_id, img_id):
     conn.commit()
 
 
-#funcion para obtener los ID's de todas las imagenes de un usuario
+# funcion para obtener los ID's de todas las imagenes de un usuario
 def get_user_images(user_id):
     conn = sqlite3.connect(DATABASE_DIR)
     cursor = conn.cursor()
@@ -74,4 +74,31 @@ def get_selected_image(user_id):
     return image
 
 
+def delete_selected_image(user_id):
+    conn = sqlite3.connect(DATABASE_DIR)
+    cursor = conn.cursor()
 
+    cursor.execute("DELETE FROM Current_Selection WHERE user_id = ?", (user_id, ))
+
+    cursor.close()
+    conn.commit()
+
+def delete_all_images(user_id):
+
+    conn = sqlite3.connect(DATABASE_DIR)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM Images WHERE user_id = ?", (user_id, ))
+
+    cursor.close()
+    conn.commit()
+
+def delete_all_selection():
+
+    conn = sqlite3.connect(DATABASE_DIR)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM Current_Selection")
+    
+    cursor.close()
+    conn.commit()
